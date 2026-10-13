@@ -30,10 +30,10 @@ body{margin:0;font-family:var(--font-ui);color:var(--ink);background:linear-grad
 .wrap{flex:1;min-height:0;position:relative;border-radius:20px;overflow:hidden;background:var(--card);box-shadow:0 6px 20px rgba(80,50,120,.14);border:2px solid var(--grid-strong)}
 #board{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
 .tray{flex:none;display:flex;justify-content:space-between;gap:2px;background:rgba(255,255,255,.92);border-radius:24px;padding:8px 6px;
-  margin-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 3px 12px rgba(80,50,120,.12);width:100%;max-width:620px;align-self:center}
+  margin-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 3px 12px rgba(80,50,120,.12);width:100%;max-width:640px;align-self:center}
 .tool{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;color:var(--ink);
   font:800 .64rem var(--font-ui);cursor:pointer;padding:0;touch-action:manipulation}
-.tool .b{width:42px;height:42px;max-width:100%;border-radius:50%;background:#f3edfb;display:grid;place-items:center;font:700 1.15rem/1 var(--font-display)}
+.tool .b{width:40px;height:40px;max-width:100%;border-radius:50%;background:#f3edfb;display:grid;place-items:center;font:700 1.15rem/1 var(--font-display)}
 .tool:active .b{transform:scale(.9)}
 .tool[aria-pressed="true"] .b{background:var(--pink);color:#fff;box-shadow:0 3px 10px rgba(255,111,159,.45)}
 .tool:disabled{opacity:.35;cursor:default}
@@ -68,7 +68,7 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
 .stat b{display:block;font:700 1.35rem var(--font-display);font-variant-numeric:tabular-nums}
 .stat span{font-size:.78rem;font-weight:800;color:var(--muted)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:40;width:100%;height:100%}
-@media (max-width:400px){.top h1{font-size:1rem}.tool{font-size:.58rem}.tool .b{width:37px;height:37px;font-size:1.02rem}.time{font-size:.8rem}}
+@media (max-width:420px){.top h1{font-size:1rem}.tool{font-size:.56rem}.tool .b{width:35px;height:35px;font-size:1rem}.time{font-size:.8rem}.tray{padding:7px 4px;gap:1px}}
 @media (prefers-reduced-motion:no-preference){
   .sheet{animation:up .22s ease-out}
   @keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
@@ -88,12 +88,13 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
   <nav class="tray" aria-label="Tools">
     <button class="tool" id="t-fill" aria-pressed="true"><span class="b"><span class="sq"></span></span>Fill</button>
     <button class="tool" id="t-cross" aria-pressed="false"><span class="b">✕</span>Cross</button>
+    <button class="tool" id="t-move" aria-pressed="false"><span class="b">✋</span>Move</button>
     <button class="tool" id="t-undo"><span class="b">↶</span>Undo</button>
     <button class="tool" id="t-redo"><span class="b">↷</span>Redo</button>
     <button class="tool" id="t-hint"><span class="b">💡</span><span id="hint-label">Hint</span></button>
     <button class="tool" id="t-check"><span class="b">✓</span>Check</button>
-    <button class="tool" id="t-out" aria-label="Zoom out"><span class="b">−</span>Smaller</button>
-    <button class="tool" id="t-in" aria-label="Zoom in"><span class="b">+</span>Bigger</button>
+    <button class="tool" id="t-out" aria-label="Zoom out"><span class="b">−</span>Out</button>
+    <button class="tool" id="t-in" aria-label="Zoom in"><span class="b">+</span>In</button>
   </nav>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
@@ -114,16 +115,18 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
     <ul>
       <li><b>Fill</b> paints squares. Tap a filled square again to clear it. Crossed squares are safe: tapping one in Fill mode just removes the cross.</li>
       <li><b>Cross</b> marks squares you're sure are empty.</li>
+      <li><b>Move</b> lets one finger slide the board around without painting anything.</li>
       <li>Drag along a row or column to paint lots of squares at once. A pink bubble counts how many squares the line covers.</li>
-      <li>Tap a clue number to cross it out yourself. They also cross out on their own as you finish them.</li>
+      <li>Numbers cross out on their own when their run is finished, and you can tap any number to cross it out yourself.</li>
+      <li>When a row or column matches its clue, its empty squares get light crosses. Change that line again and they disappear.</li>
       <li><b>Hint</b> solves one row or column for you. If something's wrong, it fixes that first.</li>
       <li><b>Check</b> shows any wrong squares in red.</li>
-      <li>Pinch with two fingers to zoom. Drag with two fingers, or drag the number strips with one, to move around. <b>Smaller</b> and <b>Bigger</b> zoom too.</li>
+      <li>Pinch with two fingers to zoom: the numbers grow with the board. Drag with two fingers, or one finger on the numbers, to move around. The numbers stay pinned to the edges while you look around. <b>Out</b> and <b>In</b> zoom too.</li>
     </ul>
     <h3>Tips</h3>
     <ul>
       <li>Start with the big numbers. A 15 in a line of 20 always covers the middle 10 squares.</li>
-      <li>The little picture in the top corner shows your whole grid, with a pink frame around the part on screen. Tap it to zoom out and see everything, and tap again to jump back.</li>
+      <li>The little picture in the top corner shows your whole grid, with a pink frame around the part on screen. Tap it to see the whole board, and tap again to jump back.</li>
       <li>Your progress saves by itself, so you can stop and come back any time.</li>
     </ul>
     <h3>Puzzle</h3>
@@ -161,10 +164,10 @@ const PUZZLES={
  big:{rows:["0000000000000000000000000000000000000000","0000000000000000000001011000000000000000","0000000000000000000010000100000000000000","0000000000000000000001000110000000000000","0000000000000000000001000011000000000000","0000000000000000000001000011100000000000","0000000000000000000001000011100000000000","0000000000000000000001000011110000000000","0000000000000000000001000001111000000000","0000000000000000000000100001111100000000","0000000000000000000000100000011100000000","0000000000000000000000110001011110000000","0000000000000000000000110001001111000000","0000000000000000000000100001111011100000","0000000000000000000000101001111111100000","0000000000000000000000111001111111110000","0000000000000000000000111000111111110000","0000000000000000000000010000010000010000","0000000000000000000000010000000000010000","0000000000000000000000011100001110001000","0000000000000000000000111110010001001000","0011111111100000000001111111100110101000","0011111111111111000011111111101110100100","0001111111111111110100111001101110110100","0000101111101111101111110000010001100100","0000010011000011111001111000001110001100","0000001111100011110001110100000001111010","0000000111111111110001111000011111111010","0000000011100001110111111100111111110010","0000000001111111111000111111011111100010","0000000000101111110011011111110001100100","0000000000011111110111011111110001100100","0000000000000111110111011111000011100100","0000000000000011111000111111110001110100","0000000000000000011111111111111110111000","0000000000000000000111111111110011111000","0000000000000000000001111111111001110000","0000000000000000000000011111111001100000","0000000000000000000000000011111111000000","0000000000000000000000000000111000000000"]}
 };
 const LS_KEY="mystery-nonogram-v2";
-const C={card:"#ffffff",ink:"#3d2b4f",rail:"#f6f0ff",railInk:"#4a3a5e",done:"#cdbfdc",pink:"#ff6f9f",cross:"#ffadc8",
-  grid:"#ebe3f3",gridStrong:"#b9a8d0",hot:"rgba(255,214,102,.28)",hotRail:"#fff0b3",warn:"#ff5a6e",hint:"#5b9dff"};
+const C={bg:"#fbf9ff",card:"#ffffff",ink:"#3d2b4f",rail:"#f4eefd",railInk:"#4a3a5e",done:"#cbbcdc",pink:"#ff6f9f",cross:"#ffa9c5",autoCross:"#ffc4d7",
+  grid:"#ebe3f3",railGrid:"#e2d7ef",gridStrong:"#b9a8d0",hot:"rgba(255,214,102,.28)",hotRail:"#fff0b3",warn:"#ff5a6e",hint:"#5b9dff",label:"#c2b3d6"};
 const FONT='"Nunito",ui-rounded,system-ui,sans-serif';
-const PAD=12,MAXCS=56;
+const PAD=12,MAXCS=60,CAPX=0.42,CAPY=0.36;
 const $=id=>document.getElementById(id);
 const clueOf=a=>{const o=[];let n=0;for(const v of a){if(v===1)n++;else if(n){o.push(n);n=0}}if(n)o.push(n);return o.length?o:[0]};
 const same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
@@ -174,50 +177,55 @@ const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 
 let S={current:"big",progress:{},mode:"fill",autoX:true,seenHelp:false,views:{}};
-let P,N,sol,cells,rowClues,colClues,maxColCount=1;
+let P,N,sol,cells,rowClues,colClues,RW=1,CH=1,rowDone=[],colDone=[];
 let undoStack=[],redoStack=[],timer=null,docRef=null,saving=false,saveAgain=false;
 let hotR=-1,hotC=-1;const flashes=new Map();
 
 function lsRead(){try{return JSON.parse(localStorage.getItem(LS_KEY)||"null")}catch(e){return null}}
 function lsWrite(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));return true}catch(e){return false}}
 function prog(){return S.progress[S.current]}
-const rowOf=r=>cells.slice(r*N,r*N+N);
-const colOf=c=>{const a=[];for(let r=0;r<N;r++)a.push(cells[r*N+c]);return a};
 const rowIdx=r=>Array.from({length:N},(_,c)=>r*N+c);
 const colIdx=c=>Array.from({length:N},(_,r)=>r*N+c);
+const rowFills=r=>{const a=new Array(N);for(let c=0;c<N;c++)a[c]=cells[r*N+c]===1?1:0;return a};
+const colFills=c=>{const a=new Array(N);for(let r=0;r<N;r++)a[r]=cells[r*N+c]===1?1:0;return a};
+
+/* Automatic crosses are worked out, never stored: when a row or column's filled
+   squares match its clue, its empty squares show as crossed. Change that line
+   again (or undo) and they disappear by themselves. */
+function recomputeDone(){
+  rowDone=Array.from({length:N},(_,r)=>same(clueOf(rowFills(r)),rowClues[r]));
+  colDone=Array.from({length:N},(_,c)=>same(clueOf(colFills(c)),colClues[c]));
+}
+function autoOn(){return S.autoX&&!prog().solved}
+function vis(i,auto){const v=cells[i];if(v)return v;return auto&&(rowDone[(i/N)|0]||colDone[i%N])?3:0}   // 3 = automatic cross
+function visLine(idx,auto){return idx.map(i=>{const v=vis(i,auto);return v===3?2:v})}
 
 /* =========================================================================
-   Board view. Everything (squares, clue strips, text) scales together, like
-   zooming a picture. The clue strips stay pinned to the edges while you move
-   around, and hug the board when it is smaller than the screen.
+   Board view. The clues live in a grid of squares the same size as the board,
+   so zooming makes everything bigger together. While you look around, the
+   clue strips stay pinned to the edges (up to a share of the screen, showing
+   the numbers next to the board); scroll fully left or up to see long clues.
    ========================================================================= */
 const cv=$("board"),ctx=cv.getContext("2d");
-let vw=300,vh=300,dpr=1,cs=20,ox=0,oy=0,L=null,minC=6,drawQueued=false,clueHits=[],cornerRect=null,overviewPrev=null;
+let vw=300,vh=300,dpr=1,cs=20,ox=0,oy=0,minC=6,drawQueued=false,clueHits=[],cornerRect=null,overviewPrev=null;
 const thumbCv=document.createElement("canvas");
-const baseWidths=new Map();
-function baseW(n){let w=baseWidths.get(n);if(w==null){ctx.font=`800 100px ${FONT}`;w=ctx.measureText(String(n)).width;baseWidths.set(n,w)}return w}
-function layout(c){
-  const fs=Math.min(15,c*0.6),gap=fs*0.42,lh=fs*1.2;
-  let rowW=0;
-  for(const cl of rowClues){let w=gap*(cl.length-1);for(const n of cl)w+=baseW(n)*fs/100;if(w>rowW)rowW=w}
-  return{fs,gap,lh,rw:Math.ceil(Math.max(rowW+fs*1.4,c*1.2)),ch:Math.ceil(Math.max(maxColCount*lh+fs*0.9,c*1.2))};
-}
-function fitsAt(c,whole){const l=layout(c);return l.rw+N*c<=vw-2*PAD+.5&&(!whole||l.ch+N*c<=vh-2*PAD+.5)}
-function bestCs(whole){let lo=2,hi=MAXCS;if(fitsAt(hi,whole))return hi;for(let k=0;k<28;k++){const m=(lo+hi)/2;if(fitsAt(m,whole))lo=m;else hi=m}return lo}
-function setCs(c){cs=clamp(c,minC,MAXCS);L=layout(cs)}
-const X=c=>L.rw-ox+c*cs, Y=r=>L.ch-oy+r*cs;
-const railX=()=>Math.max(0,X(0)-L.rw), railY=()=>Math.max(0,Y(0)-L.ch);
+const docW=()=>(RW+N)*cs, docH=()=>(CH+N)*cs;
+const X=c=>-ox+(RW+c)*cs, Y=r=>-oy+(CH+r)*cs;
+const railRight=()=>Math.max(X(0),Math.min(RW*cs,vw*CAPX));
+const railBottom=()=>Math.max(Y(0),Math.min(CH*cs,vh*CAPY));
+function fitCs(whole){const a=(vw-2*PAD)/(RW+N),b=(vh-2*PAD)/(CH+N);return whole?Math.min(a,b):a}
+function setCs(c){cs=clamp(c,minC,MAXCS)}
 function clampCam(){
-  const W=N*cs,aw=vw-L.rw,ah=vh-L.ch;
-  ox=L.rw+W+2*PAD<=vw?-(aw-W)/2:clamp(ox,-PAD,W-aw+PAD);
-  oy=L.ch+W+2*PAD<=vh?-(ah-W)/2:clamp(oy,-PAD,W-ah+PAD);
+  const W=docW(),H=docH();
+  ox=W+2*PAD<=vw?-(vw-W)/2:clamp(ox,-PAD,W-vw+PAD);
+  oy=H+2*PAD<=vh?-(vh-H)/2:clamp(oy,-PAD,H-vh+PAD);
 }
 function defaultView(){
-  const whole=bestCs(true),width=bestCs(false);
+  const whole=fitCs(true),width=fitCs(false);
   setCs(whole>=14?Math.min(whole,34):width>=14?Math.min(width,34):18);
   ox=-1e9;oy=-1e9;clampCam();
 }
-function fitWhole(){setCs(bestCs(true));clampCam()}
+function fitWhole(){setCs(fitCs(true));clampCam()}
 function saveView(){if(!P)return;S.views=S.views||{};S.views[S.current]={cs,ox,oy};lsWrite()}
 let saveViewT=null;function saveViewSoon(){clearTimeout(saveViewT);saveViewT=setTimeout(saveView,400)}
 function measure(){
@@ -225,121 +233,159 @@ function measure(){
   dpr=Math.min(3,window.devicePixelRatio||1);vw=r.width;vh=r.height;
   cv.width=Math.round(vw*dpr);cv.height=Math.round(vh*dpr);return true;
 }
-function resize(){if(!measure()||!P)return;minC=Math.min(bestCs(true),16);setCs(cs);clampCam();draw()}
+function resize(){if(!measure()||!P)return;minC=Math.min(fitCs(true),14);setCs(cs);clampCam();draw()}
 function requestDraw(){if(drawQueued)return;drawQueued=true;requestAnimationFrame(()=>{drawQueued=false;draw()})}
 function rr(x,y,w,h,r){ctx.beginPath();if(r>0&&ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
 
 function draw(){
-  if(!P||!L)return;
-  const solved=!!prog().solved,now=performance.now(),fs=L.fs;
-  const lx=railX(),ty=railY(),AX=lx+L.rw,AY=ty+L.ch,BX=Math.min(vw,X(N)),BY=Math.min(vh,Y(N));
-  const c0=clamp(Math.floor((AX-X(0))/cs),0,N-1),c1=clamp(Math.ceil((vw-X(0))/cs),1,N);
-  const r0=clamp(Math.floor((AY-Y(0))/cs),0,N-1),r1=clamp(Math.ceil((vh-Y(0))/cs),1,N);
+  if(!P)return;
+  const solved=!!prog().solved,auto=autoOn(),now=performance.now();
+  const Rx=railRight(),Ry=railBottom(),lE=Math.max(0,-ox),tE=Math.max(0,-oy),BX=Math.min(vw,X(N)),BY=Math.min(vh,Y(N));
+  const c0=clamp(Math.floor((Rx-X(0))/cs),0,N-1),c1=clamp(Math.ceil((vw-X(0))/cs),1,N);
+  const r0=clamp(Math.floor((Ry-Y(0))/cs),0,N-1),r1=clamp(Math.ceil((vh-Y(0))/cs),1,N);
+  const fs=cs*0.55,showText=fs>=3.2,tappable=cs>=11;
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.fillStyle=C.card;ctx.fillRect(0,0,vw,vh);
+  ctx.fillStyle=C.bg;ctx.fillRect(0,0,vw,vh);
 
-  /* squares */
-  ctx.save();ctx.beginPath();ctx.rect(AX,AY,BX-AX,BY-AY);ctx.clip();
-  if(!solved){ctx.fillStyle=C.hot;
-    if(hotR>=0)ctx.fillRect(X(0),Y(hotR),N*cs,cs);
-    if(hotC>=0)ctx.fillRect(X(hotC),Y(0),cs,N*cs)}
-  if(!solved)gridLines(c0,c1,r0,r1,X(0),Y(0),N*cs,N*cs,true,true,"thin");
-  const ins=solved||cs<11?0:cs*0.06,rad=solved||cs<11?0:Math.min(4,cs*0.15),bleed=ins?0:.35;
-  ctx.fillStyle=C.ink;
-  for(let r=r0;r<r1;r++)for(let c=c0;c<c1;c++){
-    if(cells[r*N+c]!==1)continue;
-    if(ins){rr(X(c)+ins,Y(r)+ins,cs-2*ins,cs-2*ins,rad);ctx.fill()}else ctx.fillRect(X(c)-bleed,Y(r)-bleed,cs+2*bleed,cs+2*bleed);
-  }
-  if(!solved){
-    if(cs>=5){
-      ctx.strokeStyle=C.cross;ctx.lineWidth=Math.max(1,cs*0.08);ctx.lineCap="round";ctx.beginPath();const m=cs*0.3;
-      for(let r=r0;r<r1;r++)for(let c=c0;c<c1;c++){if(cells[r*N+c]!==2)continue;const x=X(c),y=Y(r);
-        ctx.moveTo(x+m,y+m);ctx.lineTo(x+cs-m,y+cs-m);ctx.moveTo(x+cs-m,y+m);ctx.lineTo(x+m,y+cs-m)}
-      ctx.stroke();
+  /* ---- squares ---- */
+  if(BX>Rx&&BY>Ry){
+    ctx.save();ctx.beginPath();ctx.rect(Rx,Ry,BX-Rx,BY-Ry);ctx.clip();
+    ctx.fillStyle=C.card;ctx.fillRect(X(0),Y(0),N*cs,N*cs);
+    if(!solved){ctx.fillStyle=C.hot;
+      if(hotR>=0)ctx.fillRect(X(0),Y(hotR),N*cs,cs);
+      if(hotC>=0)ctx.fillRect(X(hotC),Y(0),cs,N*cs)}
+    if(!solved)lines(c0,c1,r0,r1,X(0),Y(0),N*cs,N*cs,"thin",C.grid);
+    const ins=solved||cs<11?0:cs*0.06,rad=solved||cs<11?0:Math.min(4,cs*0.15),bl=ins?0:.35;
+    ctx.fillStyle=C.ink;
+    for(let r=r0;r<r1;r++)for(let c=c0;c<c1;c++){
+      if(cells[r*N+c]!==1)continue;
+      if(ins){rr(X(c)+ins,Y(r)+ins,cs-2*ins,cs-2*ins,rad);ctx.fill()}else ctx.fillRect(X(c)-bl,Y(r)-bl,cs+2*bl,cs+2*bl);
     }
-    gridLines(c0,c1,r0,r1,X(0),Y(0),N*cs,N*cs,true,true,"thick");
-    let live=false;
-    flashes.forEach((f,i)=>{if(f.until<now){flashes.delete(i);return}live=true;const r=Math.floor(i/N),c=i%N;
-      ctx.strokeStyle=f.kind==="wrong"?C.warn:C.hint;ctx.lineWidth=Math.max(1.5,cs*0.12);rr(X(c)+1.5,Y(r)+1.5,cs-3,cs-3,Math.min(4,cs*.15));ctx.stroke()});
-    if(live)setTimeout(requestDraw,300);
+    if(!solved&&cs>=5){
+      const m=cs*0.3;ctx.lineWidth=Math.max(1,cs*0.08);ctx.lineCap="round";
+      for(const kind of[2,3]){
+        ctx.strokeStyle=kind===2?C.cross:C.autoCross;ctx.beginPath();
+        for(let r=r0;r<r1;r++)for(let c=c0;c<c1;c++){if(vis(r*N+c,auto)!==kind)continue;const x=X(c),y=Y(r);
+          ctx.moveTo(x+m,y+m);ctx.lineTo(x+cs-m,y+cs-m);ctx.moveTo(x+cs-m,y+m);ctx.lineTo(x+m,y+cs-m)}
+        ctx.stroke();
+      }
+    }
+    if(!solved){
+      lines(c0,c1,r0,r1,X(0),Y(0),N*cs,N*cs,"thick");
+      // little 5 / 10 / 15 counters along the last row and column, like puzzle books
+      if(cs>=14){
+        ctx.font=`800 ${Math.max(7,cs*0.3)}px ${FONT}`;ctx.textAlign="right";ctx.textBaseline="alphabetic";
+        const lab=(i,t,x,y)=>{const v=vis(i,auto);if(v===2||v===3)return;ctx.fillStyle=v===1?"rgba(255,255,255,.75)":C.label;ctx.fillText(t,x,y)};
+        for(let c=4;c<N;c+=5)lab((N-1)*N+c,String(c+1),X(c)+cs-2,Y(N-1)+cs-2);
+        for(let r=4;r<N-1;r+=5)lab(r*N+N-1,String(r+1),X(N-1)+cs-2,Y(r)+cs-2);
+      }
+      let live=false;
+      flashes.forEach((f,i)=>{if(f.until<now){flashes.delete(i);return}live=true;const r=Math.floor(i/N),c=i%N;
+        ctx.strokeStyle=f.kind==="wrong"?C.warn:C.hint;ctx.lineWidth=Math.max(1.5,cs*0.12);rr(X(c)+1.5,Y(r)+1.5,cs-3,cs-3,Math.min(4,cs*.15));ctx.stroke()});
+      if(live)setTimeout(requestDraw,300);
+    }
+    ctx.restore();
   }
-  ctx.restore();
 
-  /* clue strips */
+  /* ---- clue strips ---- */
   const marks=prog().marks||{};clueHits=[];
-  const showText=fs>=3.2,tappable=fs>=6;
-  ctx.textBaseline="middle";ctx.textAlign="center";ctx.font=`800 ${fs}px ${FONT}`;
-  // top strip
-  ctx.save();ctx.beginPath();ctx.rect(AX,ty,BX-AX,L.ch);ctx.clip();
-  ctx.fillStyle=C.rail;ctx.fillRect(AX,ty,BX-AX,L.ch);
-  if(hotC>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(X(hotC),ty,cs,L.ch)}
-  if(showText)for(let c=c0;c<c1;c++){
-    const clue=colClues[c],d=clueDone(colOf(c),clue),cx=X(c)+cs/2;
-    for(let k=clue.length-1,j=0;k>=0;k--,j++){
-      const y=ty+L.ch-fs*0.45-L.lh*(j+.5),key="c"+c+"-"+k;
-      drawNum(clue[k],cx,y,solved||d[k]||!!marks[key]);
-      if(tappable)clueHits.push({x:X(c),y:y-L.lh/2,w:cs,h:L.lh,key});
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  // left: one square per number, the last number next to the board
+  if(Rx>lE&&BY>Ry){
+    ctx.save();ctx.beginPath();ctx.rect(lE,Ry,Rx-lE,BY-Ry);ctx.clip();
+    ctx.fillStyle=C.rail;ctx.fillRect(lE,Ry,Rx-lE,BY-Ry);
+    if(hotR>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(lE,Y(hotR),Rx-lE,cs)}
+    railLinesLeft(Rx,lE,r0,r1);
+    if(showText){ctx.font=`800 ${fs}px ${FONT}`;
+      for(let r=r0;r<r1;r++){
+        const cl=rowClues[r],d=clueDone(visLine(rowIdx(r),auto),cl),cy=Y(r)+cs/2;
+        for(let k=0;k<cl.length;k++){const idx=cl.length-1-k,x=Rx-(k+.5)*cs;if(x+cs/2<lE)break;const key="r"+r+"-"+idx;
+          num(cl[idx],x,cy,fs,solved||d[idx]||!!marks[key]);
+          if(tappable)clueHits.push({x:x-cs/2,y:Y(r),w:cs,h:cs,key})}
+      }}
+    if(Rx-RW*cs<lE-.5)fade(lE,Ry,cs*.7,BY-Ry,true);
+    ctx.restore();
+  }
+  // top: numbers stacked, the last number next to the board
+  if(BX>Rx&&Ry>tE){
+    ctx.save();ctx.beginPath();ctx.rect(Rx,tE,BX-Rx,Ry-tE);ctx.clip();
+    ctx.fillStyle=C.rail;ctx.fillRect(Rx,tE,BX-Rx,Ry-tE);
+    if(hotC>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(X(hotC),tE,cs,Ry-tE)}
+    railLinesTop(Ry,tE,c0,c1);
+    if(showText){ctx.font=`800 ${fs}px ${FONT}`;
+      for(let c=c0;c<c1;c++){
+        const cl=colClues[c],d=clueDone(visLine(colIdx(c),auto),cl),cx=X(c)+cs/2;
+        for(let j=0;j<cl.length;j++){const idx=cl.length-1-j,y=Ry-(j+.5)*cs;if(y+cs/2<tE)break;const key="c"+c+"-"+idx;
+          num(cl[idx],cx,y,fs,solved||d[idx]||!!marks[key]);
+          if(tappable)clueHits.push({x:X(c),y:y-cs/2,w:cs,h:cs,key})}
+      }}
+    if(Ry-CH*cs<tE-.5)fade(Rx,tE,BX-Rx,cs*.7,false);
+    ctx.restore();
+  }
+  // corner: the little picture, with a pink frame around the part on screen
+  cornerRect=null;
+  if(Rx>lE&&Ry>tE){
+    const w=Rx-lE,h=Ry-tE;ctx.fillStyle=C.rail;ctx.fillRect(lE,tE,w,h);
+    const ts=Math.min(w,h)-Math.max(6,Math.min(w,h)*0.12);
+    if(ts>=8){
+      const tx=lE+(w-ts)/2,ty=tE+(h-ts)/2;
+      ctx.fillStyle="#fff";rr(tx-2,ty-2,ts+4,ts+4,Math.min(6,ts/6));ctx.fill();
+      ctx.imageSmoothingEnabled=false;ctx.drawImage(thumbCv,tx,ty,ts,ts);ctx.imageSmoothingEnabled=true;
+      if(!solved){
+        const vx0=clamp((Rx-X(0))/cs,0,N),vx1=clamp((vw-X(0))/cs,0,N),vy0=clamp((Ry-Y(0))/cs,0,N),vy1=clamp((vh-Y(0))/cs,0,N);
+        if(vx1-vx0<N-.5||vy1-vy0<N-.5){ctx.strokeStyle=C.pink;ctx.lineWidth=1.5;ctx.strokeRect(tx+vx0*ts/N,ty+vy0*ts/N,(vx1-vx0)*ts/N,(vy1-vy0)*ts/N)}
+      }
     }
+    cornerRect={x:lE,y:tE,w,h};
   }
-  gridLines(c0,c1,0,0,X(0),ty,N*cs,L.ch,true,false);
-  ctx.restore();
-  // left strip
-  ctx.save();ctx.beginPath();ctx.rect(lx,AY,L.rw,BY-AY);ctx.clip();
-  ctx.fillStyle=C.rail;ctx.fillRect(lx,AY,L.rw,BY-AY);
-  if(hotR>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(lx,Y(hotR),L.rw,cs)}
-  if(showText)for(let r=r0;r<r1;r++){
-    const clue=rowClues[r],d=clueDone(rowOf(r),clue),cy=Y(r)+cs/2;let x=lx+L.rw-fs*0.7;
-    for(let k=clue.length-1;k>=0;k--){
-      const w=baseW(clue[k])*fs/100,key="r"+r+"-"+k;
-      drawNum(clue[k],x-w/2,cy,solved||d[k]||!!marks[key]);
-      if(tappable)clueHits.push({x:x-w-L.gap/2,y:Y(r),w:w+L.gap,h:cs,key});
-      x-=w+L.gap;
-    }
-  }
-  gridLines(0,0,r0,r1,lx,Y(0),L.rw,N*cs,false,true);
-  ctx.restore();
-  // corner with the little picture (and a frame showing the part you are looking at)
-  ctx.fillStyle=C.rail;ctx.fillRect(lx,ty,L.rw,L.ch);
-  const ts=Math.max(8,Math.min(L.rw,L.ch)-Math.max(8,fs*1.1)),tx=lx+(L.rw-ts)/2,tty=ty+(L.ch-ts)/2;
-  ctx.fillStyle="#fff";rr(tx-2,tty-2,ts+4,ts+4,Math.min(6,ts/6));ctx.fill();
-  ctx.imageSmoothingEnabled=false;ctx.drawImage(thumbCv,tx,tty,ts,ts);ctx.imageSmoothingEnabled=true;
-  if(!solved){
-    const vx0=clamp((AX-X(0))/cs,0,N),vx1=clamp((vw-X(0))/cs,0,N),vy0=clamp((AY-Y(0))/cs,0,N),vy1=clamp((vh-Y(0))/cs,0,N);
-    if(vx1-vx0<N-.5||vy1-vy0<N-.5){ctx.strokeStyle=C.pink;ctx.lineWidth=1.5;
-      ctx.strokeRect(tx+vx0*ts/N,tty+vy0*ts/N,(vx1-vx0)*ts/N,(vy1-vy0)*ts/N)}
-  }
-  cornerRect={x:lx,y:ty,w:L.rw,h:L.ch};
-  // strip borders and the board's outline
+  // strip borders and the outline of the whole puzzle
   ctx.strokeStyle=C.gridStrong;ctx.lineWidth=2;ctx.beginPath();
-  ctx.moveTo(AX,ty);ctx.lineTo(AX,BY);ctx.moveTo(lx,AY);ctx.lineTo(BX,AY);
-  if(lx>0){ctx.moveTo(lx+1,ty);ctx.lineTo(lx+1,BY)}
-  if(ty>0){ctx.moveTo(lx,ty+1);ctx.lineTo(BX,ty+1)}
-  if(X(N)<=vw){ctx.moveTo(X(N)-1,ty);ctx.lineTo(X(N)-1,BY)}
-  if(Y(N)<=vh){ctx.moveTo(lx,Y(N)-1);ctx.lineTo(BX,Y(N)-1)}
+  ctx.moveTo(Math.round(Rx),tE);ctx.lineTo(Math.round(Rx),BY);ctx.moveTo(lE,Math.round(Ry));ctx.lineTo(BX,Math.round(Ry));
+  if(-ox>=0){ctx.moveTo(-ox+1,tE);ctx.lineTo(-ox+1,BY)}
+  if(-oy>=0){ctx.moveTo(lE,-oy+1);ctx.lineTo(BX,-oy+1)}
+  if(X(N)<=vw){ctx.moveTo(X(N)-1,tE);ctx.lineTo(X(N)-1,BY)}
+  if(Y(N)<=vh){ctx.moveTo(lE,Y(N)-1);ctx.lineTo(BX,Y(N)-1)}
   ctx.stroke();
-  // run length bubble while drawing a line
+  // run-length bubble while drawing a line
   if(stroke&&stroke.pt&&stroke.count>1){
-    const t=String(stroke.count);ctx.font=`900 16px ${FONT}`;const w=Math.max(34,ctx.measureText(t).width+20),h=30;
-    const bx=clamp(stroke.pt.x-w/2,4,vw-w-4),by=stroke.pt.y-h-(stroke.touch?58:22)<4?stroke.pt.y+30:stroke.pt.y-h-(stroke.touch?58:22);
-    ctx.fillStyle=C.pink;rr(bx,by,w,h,15);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.fillText(t,bx+w/2,by+h/2+.5);
+    const t=String(stroke.count);ctx.font=`900 16px ${FONT}`;const w=Math.max(34,ctx.measureText(t).width+20),h=30,lift=stroke.touch?60:24;
+    const bx=clamp(stroke.pt.x-w/2,4,vw-w-4);let by=stroke.pt.y-h-lift;if(by<4)by=stroke.pt.y+28;
+    ctx.fillStyle=C.pink;rr(bx,by,w,h,15);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t,bx+w/2,by+h/2+.5);
   }
 }
-function gridLines(c0,c1,r0,r1,x0,y0,w,h,vert,horiz,which){
-  const thinOk=cs>=5&&which!=="thick",thickOk=which!=="thin",thick=cs>=9?2:1.25;
-  if(thinOk){ctx.strokeStyle=C.grid;ctx.lineWidth=1;ctx.beginPath();
-    if(vert)for(let k=c0;k<=c1;k++)if(k%5){const x=Math.round(X(k))+.5;ctx.moveTo(x,y0);ctx.lineTo(x,y0+h)}
-    if(horiz)for(let k=r0;k<=r1;k++)if(k%5){const y=Math.round(Y(k))+.5;ctx.moveTo(x0,y);ctx.lineTo(x0+w,y)}
-    ctx.stroke()}
-  if(!thickOk)return;
-  ctx.strokeStyle=C.gridStrong;ctx.lineWidth=thick;ctx.beginPath();
-  if(vert)for(let k=0;k<=N;k+=5){const x=Math.round(X(k));ctx.moveTo(x,y0);ctx.lineTo(x,y0+h)}
-  if(horiz)for(let k=0;k<=N;k+=5){const y=Math.round(Y(k));ctx.moveTo(x0,y);ctx.lineTo(x0+w,y)}
+function lines(c0,c1,r0,r1,x0,y0,w,h,which,color){
+  if(which==="thin"){if(cs<5)return;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.beginPath();
+    for(let k=c0;k<=c1;k++)if(k%5){const x=Math.round(X(k))+.5;ctx.moveTo(x,y0);ctx.lineTo(x,y0+h)}
+    for(let k=r0;k<=r1;k++)if(k%5){const y=Math.round(Y(k))+.5;ctx.moveTo(x0,y);ctx.lineTo(x0+w,y)}
+    ctx.stroke();return}
+  ctx.strokeStyle=C.gridStrong;ctx.lineWidth=cs>=9?2:1.25;ctx.beginPath();
+  for(let k=0;k<=N;k+=5){const x=Math.round(X(k));ctx.moveTo(x,y0);ctx.lineTo(x,y0+h);const y=Math.round(Y(k));ctx.moveTo(x0,y);ctx.lineTo(x0+w,y)}
   ctx.stroke();
 }
-function drawNum(n,x,y,done){
-  ctx.fillStyle=done?C.done:C.railInk;ctx.fillText(String(n),x,y+L.fs*0.04);
-  if(done){const w=baseW(n)*L.fs/200+L.fs*0.12;ctx.strokeStyle=C.pink;ctx.lineWidth=Math.max(1,L.fs*0.14);ctx.lineCap="round";ctx.beginPath();
-    ctx.moveTo(x-w,y+L.fs*0.3);ctx.lineTo(x+w,y-L.fs*0.3);ctx.stroke()}
+function railLinesLeft(Rx,lE,r0,r1){
+  if(cs>=5){ctx.strokeStyle=C.railGrid;ctx.lineWidth=1;ctx.beginPath();
+    for(let k=1;k<RW;k++){const x=Math.round(Rx-k*cs)+.5;if(x<lE)break;ctx.moveTo(x,Y(0));ctx.lineTo(x,Y(N))}
+    for(let k=r0;k<=r1;k++)if(k%5){const y=Math.round(Y(k))+.5;ctx.moveTo(lE,y);ctx.lineTo(Rx,y)}
+    ctx.stroke()}
+  ctx.strokeStyle=C.gridStrong;ctx.lineWidth=cs>=9?2:1.25;ctx.beginPath();
+  for(let k=0;k<=N;k+=5){const y=Math.round(Y(k));ctx.moveTo(lE,y);ctx.lineTo(Rx,y)}ctx.stroke();
+}
+function railLinesTop(Ry,tE,c0,c1){
+  if(cs>=5){ctx.strokeStyle=C.railGrid;ctx.lineWidth=1;ctx.beginPath();
+    for(let k=1;k<CH;k++){const y=Math.round(Ry-k*cs)+.5;if(y<tE)break;ctx.moveTo(X(0),y);ctx.lineTo(X(N),y)}
+    for(let k=c0;k<=c1;k++)if(k%5){const x=Math.round(X(k))+.5;ctx.moveTo(x,tE);ctx.lineTo(x,Ry)}
+    ctx.stroke()}
+  ctx.strokeStyle=C.gridStrong;ctx.lineWidth=cs>=9?2:1.25;ctx.beginPath();
+  for(let k=0;k<=N;k+=5){const x=Math.round(X(k));ctx.moveTo(x,tE);ctx.lineTo(x,Ry)}ctx.stroke();
+}
+function fade(x,y,w,h,horizontal){
+  const g=horizontal?ctx.createLinearGradient(x,0,x+w,0):ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,"rgba(244,238,253,1)");g.addColorStop(1,"rgba(244,238,253,0)");ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+}
+function num(n,x,y,fs,done){
+  ctx.fillStyle=done?C.done:C.railInk;ctx.fillText(String(n),x,y+fs*0.04);
+  if(done){const w=String(n).length*fs*0.32+fs*0.12;ctx.strokeStyle=C.pink;ctx.lineWidth=Math.max(1,fs*0.13);ctx.lineCap="round";ctx.beginPath();
+    ctx.moveTo(x-w,y+fs*0.3);ctx.lineTo(x+w,y-fs*0.3);ctx.stroke()}
 }
 function drawThumb(){
   thumbCv.width=N;thumbCv.height=N;const x=thumbCv.getContext("2d"),img=x.createImageData(N,N);
@@ -358,21 +404,22 @@ function pick(key){
   rowClues=[];colClues=[];
   for(let r=0;r<N;r++)rowClues.push(clueOf(sol.slice(r*N,r*N+N)));
   for(let c=0;c<N;c++)colClues.push(clueOf(colIdx(c).map(i=>sol[i])));
-  maxColCount=Math.max(...colClues.map(c=>c.length));
+  RW=Math.max(...rowClues.map(c=>c.length));CH=Math.max(...colClues.map(c=>c.length));
   undoStack=[];redoStack=[];flashes.clear();overviewPrev=null;$("puzzle").value=key;
-  minC=Math.min(bestCs(true),16);
+  recomputeDone();
+  minC=Math.min(fitCs(true),14);
   const v=S.views&&S.views[key];
-  if(prog().solved){fitWhole()}
+  if(prog().solved)fitWhole();
   else if(v&&v.cs){setCs(v.cs);ox=v.ox;oy=v.oy;clampCam()}
   else defaultView();
   refreshAll();
 }
 function stash(){if(P&&cells&&S.progress[S.current])S.progress[S.current].cells=cells.join("")}
 
-/* ---------- clue crossing ---------- */
-// A clue number is crossed out only when the board proves that run is finished:
-// the run's position is forced (its leftmost and rightmost possible placements agree)
-// and all its squares are filled. A line whose filled runs exactly match its clue is done.
+/* ---------- clue crossing ----------
+   A number is crossed out only when the board proves that run is finished: its
+   position is forced (the leftmost and rightmost possible places agree) and all
+   its squares are filled. A line whose filled runs match its clue is done. */
 const doneCache=new Map();
 function clueDone(line,clue){
   const key=line.join("")+"|"+clue.join(",");let d=doneCache.get(key);if(d)return d;
@@ -389,7 +436,7 @@ function clueDone(line,clue){
   }
   doneCache.set(key,d);return d;
 }
-function place(line,clue){            // leftmost start of every run, or null if the line can't be finished
+function place(line,clue){
   const n=line.length,K=clue.length,memo=new Int8Array((n+2)*(K+1)).fill(-1);
   const fits=(i,k)=>{const e=i+clue[k];if(e>n)return -1;for(let j=i;j<e;j++)if(line[j]===2)return -1;if(e<n&&line[e]===1)return -1;return e<n?e+1:n};
   const ok=(i,k)=>{const key=i*(K+1)+k;if(memo[key]>=0)return memo[key]===1;let r=false;
@@ -408,11 +455,11 @@ function place(line,clue){            // leftmost start of every run, or null if
 function refreshAll(){
   updateStats();refreshButtons();
   const p=prog();
-  $("t-fill").setAttribute("aria-pressed",S.mode==="fill");
-  $("t-cross").setAttribute("aria-pressed",S.mode==="cross");
+  ["fill","cross","move"].forEach(m=>$("t-"+m).setAttribute("aria-pressed",S.mode===m));
   $("hint-label").textContent=p.hints?`Hint · ${p.hints}`:"Hint";
   $("opt-autox").checked=S.autoX;
   ["t-hint","t-check","t-fill","t-cross"].forEach(id=>$(id).disabled=!!p.solved);
+  cv.style.cursor=S.mode==="move"?"grab":"crosshair";
   requestDraw();
 }
 function refreshButtons(){const sv=!!prog().solved;$("t-undo").disabled=sv||!undoStack.length;$("t-redo").disabled=sv||!redoStack.length}
@@ -420,27 +467,20 @@ function fmt(t){t=Math.floor(t);const h=Math.floor(t/3600),m=Math.floor(t%3600/6
 function updateStats(){
   $("time").textContent=fmt(prog().time);
   const need=sol.reduce((a,b)=>a+b,0);let have=0;for(let i=0;i<N*N;i++)if(cells[i]===1)have++;
-  const pct=prog().solved?100:Math.min(99,Math.floor(have/need*100));$("ring").textContent=pct+"%";$("ring").style.setProperty("--p",pct+"%");
-  $("ring").setAttribute("aria-label",`${pct}% of the picture found`);
+  const pct=prog().solved?100:Math.min(99,Math.floor(have/need*100));
+  $("ring").textContent=pct+"%";$("ring").style.setProperty("--p",pct+"%");
+  $("ring").setAttribute("aria-label",`${pct}% of the squares filled`);
   drawThumb();requestDraw();
 }
 let toastT=null;
 function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
-/* ---------- changes, auto-cross, win ---------- */
+/* ---------- changes and winning ---------- */
 function setCell(i,v,changes){if(cells[i]===v)return;changes.push([i,cells[i],v]);cells[i]=v}
-function autoCross(r,c,changes){
-  if(!S.autoX)return;
-  if(r>=0&&same(clueOf(rowOf(r)),rowClues[r]))rowIdx(r).forEach(i=>{if(cells[i]===0)setCell(i,2,changes)});
-  if(c>=0&&same(clueOf(colOf(c)),colClues[c]))colIdx(c).forEach(i=>{if(cells[i]===0)setCell(i,2,changes)});
-}
 function commit(changes){
   if(!changes.length)return;
-  const rs=new Set(),cs_=new Set();
-  changes.slice().forEach(([i])=>{rs.add(Math.floor(i/N));cs_.add(i%N)});
-  rs.forEach(r=>autoCross(r,-1,changes));cs_.forEach(c=>autoCross(-1,c,changes));
   undoStack.push(changes);if(undoStack.length>500)undoStack.shift();redoStack=[];
-  updateStats();refreshButtons();markDirty();checkWin();
+  recomputeDone();updateStats();refreshButtons();markDirty();checkWin();
 }
 function checkWin(){
   for(let i=0;i<N*N;i++)if((cells[i]===1)!==(sol[i]===1))return;
@@ -479,9 +519,9 @@ function hint(){
   const ch=[];
   if(wrong.length){wrong.forEach(i=>setCell(i,0,ch));p.hints++;flash(wrong,"hint");showCell(wrong[0]);
     toast(`Fixed ${wrong.length} square${wrong.length>1?"s":""} that ${wrong.length>1?"were":"was"} wrong`);commit(ch);refreshAll();return}
-  let best=null;
+  const auto=autoOn();let best=null;
   const consider=(name,num,idx,clue)=>{
-    const cur=idx.map(i=>cells[i]),res=solveLine(clue,cur);if(!res)return;
+    const cur=visLine(idx,auto),res=solveLine(clue,cur);if(!res)return;
     const gain=idx.filter((i,j)=>cur[j]===0&&res[j]!==0);
     if(gain.length&&(!best||gain.length>best.gain.length))best={name,num,idx,res,gain};
   };
@@ -494,7 +534,7 @@ function hint(){
 }
 function flash(list,kind){const until=performance.now()+2400;list.forEach(i=>flashes.set(i,{kind,until}));requestDraw()}
 function showCell(i){
-  const r=Math.floor(i/N),c=i%N,x=X(c),y=Y(r),ax=railX()+L.rw,ay=railY()+L.ch;
+  const r=Math.floor(i/N),c=i%N,x=X(c),y=Y(r),ax=railRight(),ay=railBottom();
   if(x<ax||x+cs>vw)ox+=(x+cs/2)-(ax+vw)/2;
   if(y<ay||y+cs>vh)oy+=(y+cs/2)-(ay+vh)/2;
   clampCam();requestDraw();saveViewSoon();
@@ -502,23 +542,24 @@ function showCell(i){
 
 /* =========================================================================
    Touch and mouse.
-   One finger on the squares paints a line (it locks to a row or column and
-   follows your finger even if it drifts). Two fingers pinch to zoom and drag
-   to move. One finger on the number strips or empty space moves the board.
+   Fill / Cross: one finger paints a line (it locks to a row or column and
+   follows your finger even if it drifts). Move: one finger moves the board.
+   Always: two fingers pinch to zoom and drag to move; one finger on the clue
+   strips moves the board; tapping a clue number crosses it out.
    ========================================================================= */
 const pts=new Map();let stroke=null,gest=null,pan=null,tap=null,fling=null,samples=[];
 function local(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function cellRC(p){return{c:Math.floor((p.x-X(0))/cs),r:Math.floor((p.y-Y(0))/cs)}}
-function inSquares(p){return p.x>=railX()+L.rw&&p.y>=railY()+L.ch}
-function cellAt(p){if(!inSquares(p))return -1;const{r,c}=cellRC(p);return r>=0&&r<N&&c>=0&&c<N?r*N+c:-1}
+function cellAt(p){if(p.x<railRight()||p.y<railBottom())return -1;const{r,c}=cellRC(p);return r>=0&&r<N&&c>=0&&c<N?r*N+c:-1}
 function beginStroke(i,button,p,touch){
-  const want=(button===2||S.mode==="cross")?2:1,from=cells[i];
+  const want=(button===2||S.mode==="cross")?2:1,auto=autoOn(),v=vis(i,auto);
   let target;
-  if(from===0)target=want;                 // paint empty squares
-  else if(from===want)target=0;            // tap again to clear
-  else if(from===2&&want===1)target=0;     // in Fill mode, a crossed square is cleared first (never filled by accident)
-  else return false;                       // crossing never wipes a filled square
-  stroke={r0:Math.floor(i/N),c0:i%N,axis:null,from,target,prev:new Map(),pt:p,touch,count:1};
+  if(v===0)target=want;                         // paint empty squares
+  else if(v===want)target=0;                    // tap again to clear
+  else if(v===2&&want===1)target=0;             // Fill on a cross clears the cross (never fills it by accident)
+  else if(v===3){toast("That line already matches its clue ✓");return false}
+  else return false;                            // crossing never wipes a filled square
+  stroke={r0:Math.floor(i/N),c0:i%N,axis:null,from:v,target,prev:new Map(),pt:p,touch,count:1,auto};
   paintTo(stroke.r0,stroke.c0);startTimer();return true;
 }
 function strokeMove(p){
@@ -534,8 +575,9 @@ function paintTo(r,c){
   let changed=false;
   for(const[i,prev]of s.prev){const k=row?i%N:Math.floor(i/N);if(k<lo||k>hi){cells[i]=prev;s.prev.delete(i);changed=true}}
   for(let k=lo;k<=hi;k++){
-    const j=row?s.r0*N+k:k*N+s.c0;if(s.prev.has(j))continue;const cur=cells[j];
-    if(s.target===0?cur!==s.from:cur!==0)continue;
+    const j=row?s.r0*N+k:k*N+s.c0;if(s.prev.has(j))continue;
+    const cur=cells[j];
+    if(s.target===0?cur!==s.from:vis(j,s.auto)!==0)continue;
     s.prev.set(j,cur);cells[j]=s.target;changed=true;
   }
   s.count=hi-lo+1;
@@ -547,11 +589,11 @@ function endStroke(){
   if(!stroke)return;const ch=[...stroke.prev].map(([i,prev])=>[i,prev,cells[i]]).filter(([i,a,b])=>a!==b);
   stroke=null;hotR=hotC=-1;commit(ch);requestDraw();
 }
+function anchorZoom(newCs,p,dx,dy){setCs(newCs);ox=dx*cs-p.x;oy=dy*cs-p.y;clampCam()}
 function startGesture(){
   const[a,b]=[...pts.values()],m=mid(a,b);
-  gest={d0:Math.max(30,dist(a,b)),cs0:cs,cx:(m.x-X(0))/cs,cy:(m.y-Y(0))/cs};samples=[];
+  gest={d0:Math.max(30,dist(a,b)),cs0:cs,dx:(m.x+ox)/cs,dy:(m.y+oy)/cs};samples=[];
 }
-function anchorZoom(newCs,p,cx,cy){setCs(newCs);ox=L.rw+cx*cs-p.x;oy=L.ch+cy*cs-p.y;clampCam()}
 function sample(){const t=performance.now();samples.push({t,ox,oy});while(samples.length>2&&t-samples[0].t>100)samples.shift()}
 function stopFling(){if(fling){cancelAnimationFrame(fling);fling=null}}
 function startFling(){
@@ -562,29 +604,28 @@ function startFling(){
     if(Math.hypot(vx,vy)>.4)fling=requestAnimationFrame(step);else{fling=null;saveViewSoon()}};
   fling=requestAnimationFrame(step);
 }
+function startPan(p,withTap){pan={sx:p.x,sy:p.y,ox0:ox,oy0:oy};tap=withTap?{x:p.x,y:p.y}:null;samples=[]}
 cv.addEventListener("pointerdown",e=>{
   if(!P)return;stopFling();
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
   const p=local(e),touch=e.pointerType!=="mouse";pts.set(e.pointerId,p);
   if(pts.size===2){cancelStroke();pan=null;tap=null;startGesture();requestDraw();return}
   if(pts.size>2)return;
-  if(e.button===1){pan={sx:p.x,sy:p.y,ox0:ox,oy0:oy};samples=[];return}
+  if(e.button===1){startPan(p,false);return}
   const i=cellAt(p);
-  if(i>=0&&!prog().solved){
+  if(i>=0&&!prog().solved&&S.mode!=="move"){
     e.preventDefault();
-    if(!beginStroke(i,e.button,p,touch)){pan={sx:p.x,sy:p.y,ox0:ox,oy0:oy};samples=[]}
-  }else{pan={sx:p.x,sy:p.y,ox0:ox,oy0:oy};tap={x:p.x,y:p.y};samples=[]}
+    if(!beginStroke(i,e.button,p,touch))startPan(p,false);
+  }else startPan(p,true);
 });
 cv.addEventListener("pointermove",e=>{
   if(!P)return;const p=local(e);
   if(!pts.has(e.pointerId)){
-    if(e.pointerType==="mouse"){const i=cellAt(p),r=i<0?-1:Math.floor(i/N),c=i<0?-1:i%N;if(r!==hotR||c!==hotC){hotR=r;hotC=c;requestDraw()}}
+    if(e.pointerType==="mouse"){const i=S.mode==="move"?-1:cellAt(p),r=i<0?-1:Math.floor(i/N),c=i<0?-1:i%N;if(r!==hotR||c!==hotC){hotR=r;hotC=c;requestDraw()}}
     return;
   }
   pts.set(e.pointerId,p);
-  if(gest&&pts.size>=2){
-    const[a,b]=[...pts.values()];anchorZoom(gest.cs0*dist(a,b)/gest.d0,mid(a,b),gest.cx,gest.cy);sample();requestDraw();return;
-  }
+  if(gest&&pts.size>=2){const[a,b]=[...pts.values()];anchorZoom(gest.cs0*dist(a,b)/gest.d0,mid(a,b),gest.dx,gest.dy);sample();requestDraw();return}
   if(stroke){strokeMove(p);return}
   if(pan){
     if(tap&&dist(p,tap)>8)tap=null;
@@ -595,8 +636,7 @@ function pointerEnd(e,cancelled){
   if(!pts.has(e.pointerId))return;
   const p=local(e);pts.delete(e.pointerId);
   if(gest){
-    if(pts.size<2){gest=null;const rest=[...pts.values()][0];
-      if(rest){pan={sx:rest.x,sy:rest.y,ox0:ox,oy0:oy};samples=[]}else startFling()}
+    if(pts.size<2){gest=null;const rest=[...pts.values()][0];if(rest)startPan(rest,false);else startFling()}
     return;
   }
   if(stroke&&pts.size===0){endStroke();return}
@@ -613,14 +653,14 @@ cv.addEventListener("pointerup",e=>pointerEnd(e,false));cv.addEventListener("poi
 cv.addEventListener("lostpointercapture",e=>{if(pts.has(e.pointerId))pointerEnd(e,true)});
 cv.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse"&&!pts.size&&(hotR>=0||hotC>=0)){hotR=hotC=-1;requestDraw()}});
 cv.addEventListener("contextmenu",e=>e.preventDefault());
-// stop the browser from zooming or scrolling the page instead of the board (iPhone Safari ignores the viewport setting)
+// keep the browser from zooming or scrolling the page instead of the board (iPhone Safari ignores the viewport setting)
 cv.addEventListener("touchstart",e=>e.preventDefault(),{passive:false});
 cv.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 ["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
 document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 cv.addEventListener("wheel",e=>{
   e.preventDefault();if(!P)return;stopFling();
-  if(e.ctrlKey||e.metaKey){const p=local(e);anchorZoom(cs*Math.exp(-e.deltaY*0.0075),p,(p.x-X(0))/cs,(p.y-Y(0))/cs)}
+  if(e.ctrlKey||e.metaKey){const p=local(e);anchorZoom(cs*Math.exp(-e.deltaY*0.0075),p,(p.x+ox)/cs,(p.y+oy)/cs)}
   else{const k=e.deltaMode===1?16:1;ox+=(e.shiftKey?e.deltaY:e.deltaX)*k;oy+=(e.shiftKey?0:e.deltaY)*k;clampCam()}
   requestDraw();saveViewSoon();
 },{passive:false});
@@ -628,24 +668,21 @@ function toggleMark(key){
   const p=prog();if(p.solved)return;p.marks=p.marks||{};
   if(p.marks[key])delete p.marks[key];else p.marks[key]=1;buzz(5);requestDraw();markDirty();
 }
+function boardCenter(){return{x:(railRight()+vw)/2,y:(railBottom()+vh)/2}}
 function toggleOverview(){
-  const whole=bestCs(true);
-  if(cs>whole*1.12){overviewPrev={cs,ox,oy};setCs(whole);clampCam()}
+  stopFling();const whole=fitCs(true);
+  if(cs>whole*1.12){overviewPrev={cs,ox,oy};fitWhole()}
   else if(overviewPrev){setCs(overviewPrev.cs);ox=overviewPrev.ox;oy=overviewPrev.oy;clampCam();overviewPrev=null}
-  else{const p={x:(railX()+L.rw+vw)/2,y:(railY()+L.ch+vh)/2};anchorZoom(Math.max(18,cs*2),p,(p.x-X(0))/cs,(p.y-Y(0))/cs)}
+  else{const p=boardCenter();anchorZoom(Math.max(18,cs*2),p,(p.x+ox)/cs,(p.y+oy)/cs)}
   requestDraw();saveViewSoon();
 }
-function zoomBy(f){
-  stopFling();const p={x:(railX()+L.rw+vw)/2,y:(railY()+L.ch+vh)/2};
-  anchorZoom(cs*f,p,(p.x-X(0))/cs,(p.y-Y(0))/cs);requestDraw();saveViewSoon();
-}
+function zoomBy(f){stopFling();const p=boardCenter();anchorZoom(cs*f,p,(p.x+ox)/cs,(p.y+oy)/cs);requestDraw();saveViewSoon()}
 
 /* ---------- toolbar ---------- */
 function replay(list,useNext){list.forEach(([i,prev,next])=>{cells[i]=useNext?next:prev})}
-$("t-undo").onclick=()=>{const ch=undoStack.pop();if(!ch)return;replay(ch.slice().reverse(),false);redoStack.push(ch);updateStats();refreshButtons();markDirty()};
-$("t-redo").onclick=()=>{const ch=redoStack.pop();if(!ch)return;replay(ch,true);undoStack.push(ch);updateStats();refreshButtons();markDirty();checkWin()};
-$("t-fill").onclick=()=>{S.mode="fill";refreshAll();lsWrite()};
-$("t-cross").onclick=()=>{S.mode="cross";refreshAll();lsWrite()};
+$("t-undo").onclick=()=>{const ch=undoStack.pop();if(!ch)return;replay(ch.slice().reverse(),false);redoStack.push(ch);recomputeDone();updateStats();refreshButtons();markDirty()};
+$("t-redo").onclick=()=>{const ch=redoStack.pop();if(!ch)return;replay(ch,true);undoStack.push(ch);recomputeDone();updateStats();refreshButtons();markDirty();checkWin()};
+["fill","cross","move"].forEach(m=>$("t-"+m).onclick=()=>{S.mode=m;refreshAll();lsWrite()});
 $("t-in").onclick=()=>zoomBy(1.3);$("t-out").onclick=()=>zoomBy(1/1.3);
 $("t-hint").onclick=hint;
 $("t-check").onclick=()=>{
@@ -658,9 +695,13 @@ $("help").addEventListener("click",e=>{if(e.target.id==="help")openHelp(false)})
 $("win").addEventListener("click",e=>{if(e.target.id==="win")$("win").hidden=true});
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){openHelp(false);$("win").hidden=true;return}
-  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"){e.preventDefault();(e.shiftKey?$("t-redo"):$("t-undo")).click()}
-  else if(!e.ctrlKey&&!e.metaKey&&(e.key==="+"||e.key==="="))zoomBy(1.3);
-  else if(!e.ctrlKey&&!e.metaKey&&e.key==="-")zoomBy(1/1.3);
+  if(!$("help").hidden||!$("win").hidden)return;
+  const k=e.key.toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&k==="z"){e.preventDefault();(e.shiftKey?$("t-redo"):$("t-undo")).click()}
+  else if(e.ctrlKey||e.metaKey||e.altKey)return;
+  else if(k==="+"||k==="=")zoomBy(1.3);
+  else if(k==="-")zoomBy(1/1.3);
+  else if(k==="f")$("t-fill").click();else if(k==="x")$("t-cross").click();else if(k==="m")$("t-move").click();
 });
 function openHelp(on){
   $("help").hidden=!on;
@@ -669,7 +710,7 @@ function openHelp(on){
   if(!on&&!S.seenHelp){S.seenHelp=true;lsWrite()}
 }
 $("puzzle").onchange=e=>{pick(e.target.value);lsWrite();markDirty();openHelp(false);if(prog().solved)showWin()};
-$("opt-autox").onchange=e=>{S.autoX=e.target.checked;lsWrite()};
+$("opt-autox").onchange=e=>{S.autoX=e.target.checked;lsWrite();requestDraw()};
 let armT=null;
 $("reset").onclick=()=>{
   const b=$("reset");
@@ -678,7 +719,7 @@ $("reset").onclick=()=>{
   clearTimeout(armT);b.classList.remove("armed");b.textContent="Start over";clearBoard();openHelp(false);
 };
 function clearBoard(){cells.fill(0);undoStack=[];redoStack=[];flashes.clear();Object.assign(prog(),{time:0,solved:false,hints:0,marks:{}});
-  if(S.views)delete S.views[S.current];overviewPrev=null;defaultView();refreshAll();markDirty(true)}
+  if(S.views)delete S.views[S.current];overviewPrev=null;recomputeDone();defaultView();refreshAll();markDirty(true)}
 $("win-see").onclick=()=>{$("win").hidden=true;fitWhole();requestDraw()};
 $("win-again").onclick=()=>{$("win").hidden=true;clearBoard()};
 
@@ -738,15 +779,17 @@ async function connect(){
 function start(prev){
   const saved=prev&&prev.progress?prev:lsRead();
   if(saved&&saved.progress)S=Object.assign(S,saved);
+  if(S.layout!==3){S.views={};S.layout=3}               // the board layout changed: start each puzzle from a fresh view
   delete S.cs;delete S.csSet;delete S.pan;
-  S.progress=S.progress||{};S.views=S.views||{};if(!PUZZLES[S.current])S.current="big";if(S.mode!=="cross")S.mode="fill";
+  S.progress=S.progress||{};S.views=S.views||{};
+  if(!PUZZLES[S.current])S.current="big";if(!["fill","cross","move"].includes(S.mode))S.mode="fill";
   measure();
   pick(S.current);
   if(prog().solved)showWin();else openHelp(true);
   connect();
 }
 if(window.ResizeObserver)new ResizeObserver(()=>resize()).observe($("wrap"));else addEventListener("resize",resize);
-document.fonts?.ready?.then(()=>{baseWidths.clear();if(P){minC=Math.min(bestCs(true),16);setCs(cs);clampCam();requestDraw()}});
+document.fonts?.ready?.then(()=>requestDraw());
 window.claude?.hot?.snapshot?.(()=>{stash();return S});
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 </script>
