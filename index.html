@@ -88,7 +88,6 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
   <nav class="tray" aria-label="Tools">
     <button class="tool" id="t-fill" aria-pressed="true"><span class="b"><span class="sq"></span></span>Fill</button>
     <button class="tool" id="t-cross" aria-pressed="false"><span class="b">✕</span>Cross</button>
-    <button class="tool" id="t-move" aria-pressed="false"><span class="b">✋</span>Move</button>
     <button class="tool" id="t-undo"><span class="b">↶</span>Undo</button>
     <button class="tool" id="t-redo"><span class="b">↷</span>Redo</button>
     <button class="tool" id="t-hint"><span class="b">💡</span><span id="hint-label">Hint</span></button>
@@ -113,9 +112,9 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
     <summary>Tools, tips and settings</summary>
     <h3>Tools</h3>
     <ul>
-      <li><b>Fill</b> paints squares. Tap a filled square again to clear it. Crossed squares are safe: tapping one in Fill mode just removes the cross.</li>
-      <li><b>Cross</b> marks squares you're sure are empty.</li>
-      <li><b>Move</b> lets one finger slide the board around without painting anything.</li>
+      <li><b>Fill</b> paints squares. Tap a filled square with Fill again to clear it.</li>
+      <li><b>Cross</b> marks squares you're sure are empty. Tap a cross with Cross again to remove it.</li>
+      <li>Fill and Cross never erase each other's marks, so a drag goes around squares that are already marked.</li>
       <li>Drag along a row or column to paint lots of squares at once. A pink bubble counts how many squares the line covers.</li>
       <li>Numbers cross out on their own when their run is finished, and you can tap any number to cross it out yourself.</li>
       <li>When a row or column matches its clue, its empty squares get light crosses. Change that line again and they disappear.</li>
@@ -243,7 +242,7 @@ function draw(){
   const Rx=railRight(),Ry=railBottom(),lE=Math.max(0,-ox),tE=Math.max(0,-oy),BX=Math.min(vw,X(N)),BY=Math.min(vh,Y(N));
   const c0=clamp(Math.floor((Rx-X(0))/cs),0,N-1),c1=clamp(Math.ceil((vw-X(0))/cs),1,N);
   const r0=clamp(Math.floor((Ry-Y(0))/cs),0,N-1),r1=clamp(Math.ceil((vh-Y(0))/cs),1,N);
-  const fs=cs*0.55,showText=fs>=3.2,tappable=cs>=11;
+  const tappable=cs>=11;
   ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.fillStyle=C.bg;ctx.fillRect(0,0,vw,vh);
 
@@ -296,13 +295,13 @@ function draw(){
     ctx.fillStyle=C.rail;ctx.fillRect(lE,Ry,Rx-lE,BY-Ry);
     if(hotR>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(lE,Y(hotR),Rx-lE,cs)}
     railLinesLeft(Rx,lE,r0,r1);
-    if(showText){ctx.font=`800 ${fs}px ${FONT}`;
+    {const list=[];
       for(let r=r0;r<r1;r++){
         const cl=rowClues[r],d=clueDone(visLine(rowIdx(r),auto),cl),cy=Y(r)+cs/2;
         for(let k=0;k<cl.length;k++){const idx=cl.length-1-k,x=Rx-(k+.5)*cs;if(x+cs/2<lE)break;const key="r"+r+"-"+idx;
-          num(cl[idx],x,cy,fs,solved||d[idx]||!!marks[key]);
+          list.push([cl[idx],x,cy,solved||d[idx]||!!marks[key]]);
           if(tappable)clueHits.push({x:x-cs/2,y:Y(r),w:cs,h:cs,key})}
-      }}
+      }drawNums(list)}
     if(Rx-RW*cs<lE-.5)fade(lE,Ry,cs*.7,BY-Ry,true);
     ctx.restore();
   }
@@ -312,13 +311,13 @@ function draw(){
     ctx.fillStyle=C.rail;ctx.fillRect(Rx,tE,BX-Rx,Ry-tE);
     if(hotC>=0&&!solved){ctx.fillStyle=C.hotRail;ctx.fillRect(X(hotC),tE,cs,Ry-tE)}
     railLinesTop(Ry,tE,c0,c1);
-    if(showText){ctx.font=`800 ${fs}px ${FONT}`;
+    {const list=[];
       for(let c=c0;c<c1;c++){
         const cl=colClues[c],d=clueDone(visLine(colIdx(c),auto),cl),cx=X(c)+cs/2;
         for(let j=0;j<cl.length;j++){const idx=cl.length-1-j,y=Ry-(j+.5)*cs;if(y+cs/2<tE)break;const key="c"+c+"-"+idx;
-          num(cl[idx],cx,y,fs,solved||d[idx]||!!marks[key]);
+          list.push([cl[idx],cx,y,solved||d[idx]||!!marks[key]]);
           if(tappable)clueHits.push({x:X(c),y:y-cs/2,w:cs,h:cs,key})}
-      }}
+      }drawNums(list)}
     if(Ry-CH*cs<tE-.5)fade(Rx,tE,BX-Rx,cs*.7,false);
     ctx.restore();
   }
@@ -381,6 +380,13 @@ function railLinesTop(Ry,tE,c0,c1){
 function fade(x,y,w,h,horizontal){
   const g=horizontal?ctx.createLinearGradient(x,0,x+w,0):ctx.createLinearGradient(0,y,0,y+h);
   g.addColorStop(0,"rgba(244,238,253,1)");g.addColorStop(1,"rgba(244,238,253,0)");ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+}
+function drawNums(list){
+  for(const two of[false,true]){
+    const f=two?cs*0.5:cs*0.62;if(f<3.2)continue;
+    ctx.font=`800 ${f}px ${FONT}`;
+    for(const[n,x,y,done]of list)if((n>=10)===two)num(n,x,y,f,done);
+  }
 }
 function num(n,x,y,fs,done){
   ctx.fillStyle=done?C.done:C.railInk;ctx.fillText(String(n),x,y+fs*0.04);
@@ -455,11 +461,10 @@ function place(line,clue){
 function refreshAll(){
   updateStats();refreshButtons();
   const p=prog();
-  ["fill","cross","move"].forEach(m=>$("t-"+m).setAttribute("aria-pressed",S.mode===m));
+  ["fill","cross"].forEach(m=>$("t-"+m).setAttribute("aria-pressed",S.mode===m));
   $("hint-label").textContent=p.hints?`Hint · ${p.hints}`:"Hint";
   $("opt-autox").checked=S.autoX;
   ["t-hint","t-check","t-fill","t-cross"].forEach(id=>$(id).disabled=!!p.solved);
-  cv.style.cursor=S.mode==="move"?"grab":"crosshair";
   requestDraw();
 }
 function refreshButtons(){const sv=!!prog().solved;$("t-undo").disabled=sv||!undoStack.length;$("t-redo").disabled=sv||!redoStack.length}
@@ -542,25 +547,28 @@ function showCell(i){
 
 /* =========================================================================
    Touch and mouse.
-   Fill / Cross: one finger paints a line (it locks to a row or column and
-   follows your finger even if it drifts). Move: one finger moves the board.
-   Always: two fingers pinch to zoom and drag to move; one finger on the clue
-   strips moves the board; tapping a clue number crosses it out.
+   One finger on the squares paints a line (it locks to a row or column and
+   follows your finger even if it drifts). Two fingers pinch to zoom and drag
+   to move; one finger on the clue strips moves the board; tapping a clue
+   number crosses it out.
    ========================================================================= */
 const pts=new Map();let stroke=null,gest=null,pan=null,tap=null,fling=null,samples=[];
 function local(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function cellRC(p){return{c:Math.floor((p.x-X(0))/cs),r:Math.floor((p.y-Y(0))/cs)}}
 function cellAt(p){if(p.x<railRight()||p.y<railBottom())return -1;const{r,c}=cellRC(p);return r>=0&&r<N&&c>=0&&c<N?r*N+c:-1}
 function beginStroke(i,button,p,touch){
+  // Each tool only clears its own marks: tap a filled square with Fill (or a cross with Cross) to clear it.
+  // Otherwise the stroke paints empty squares and goes around everything else.
   const want=(button===2||S.mode==="cross")?2:1,auto=autoOn(),v=vis(i,auto);
-  let target;
-  if(v===0)target=want;                         // paint empty squares
-  else if(v===want)target=0;                    // tap again to clear
-  else if(v===2&&want===1)target=0;             // Fill on a cross clears the cross (never fills it by accident)
-  else if(v===3){toast("That line already matches its clue ✓");return false}
-  else return false;                            // crossing never wipes a filled square
-  stroke={r0:Math.floor(i/N),c0:i%N,axis:null,from:v,target,prev:new Map(),pt:p,touch,count:1,auto};
+  stroke={r0:Math.floor(i/N),c0:i%N,axis:null,from:want,target:v===want?0:want,startV:v,want,prev:new Map(),pt:p,touch,count:1,auto};
   paintTo(stroke.r0,stroke.c0);startTimer();return true;
+}
+let protectT=-1e9;
+function protectedTapHint(v,want){
+  const now=performance.now();if(now-protectT<3000)return;protectT=now;
+  if(v===3)toast("That line already matches its clue ✓");
+  else if(v===2&&want===1)toast("Crossed square: use ✕ to remove it");
+  else if(v===1&&want===2)toast("Filled square: use ■ to clear it");
 }
 function strokeMove(p){
   const s=stroke,{r,c}=cellRC(p);s.pt=p;
@@ -587,6 +595,7 @@ function paintTo(r,c){
 function cancelStroke(){if(!stroke)return;for(const[i,prev]of stroke.prev)cells[i]=prev;stroke=null;hotR=hotC=-1;updateStats()}
 function endStroke(){
   if(!stroke)return;const ch=[...stroke.prev].map(([i,prev])=>[i,prev,cells[i]]).filter(([i,a,b])=>a!==b);
+  if(!ch.length&&!stroke.axis&&stroke.startV!==0&&stroke.startV!==stroke.want)protectedTapHint(stroke.startV,stroke.want);
   stroke=null;hotR=hotC=-1;commit(ch);requestDraw();
 }
 function anchorZoom(newCs,p,dx,dy){setCs(newCs);ox=dx*cs-p.x;oy=dy*cs-p.y;clampCam()}
@@ -613,7 +622,7 @@ cv.addEventListener("pointerdown",e=>{
   if(pts.size>2)return;
   if(e.button===1){startPan(p,false);return}
   const i=cellAt(p);
-  if(i>=0&&!prog().solved&&S.mode!=="move"){
+  if(i>=0&&!prog().solved){
     e.preventDefault();
     if(!beginStroke(i,e.button,p,touch))startPan(p,false);
   }else startPan(p,true);
@@ -621,7 +630,7 @@ cv.addEventListener("pointerdown",e=>{
 cv.addEventListener("pointermove",e=>{
   if(!P)return;const p=local(e);
   if(!pts.has(e.pointerId)){
-    if(e.pointerType==="mouse"){const i=S.mode==="move"?-1:cellAt(p),r=i<0?-1:Math.floor(i/N),c=i<0?-1:i%N;if(r!==hotR||c!==hotC){hotR=r;hotC=c;requestDraw()}}
+    if(e.pointerType==="mouse"){const i=cellAt(p),r=i<0?-1:Math.floor(i/N),c=i<0?-1:i%N;if(r!==hotR||c!==hotC){hotR=r;hotC=c;requestDraw()}}
     return;
   }
   pts.set(e.pointerId,p);
@@ -682,7 +691,7 @@ function zoomBy(f){stopFling();const p=boardCenter();anchorZoom(cs*f,p,(p.x+ox)/
 function replay(list,useNext){list.forEach(([i,prev,next])=>{cells[i]=useNext?next:prev})}
 $("t-undo").onclick=()=>{const ch=undoStack.pop();if(!ch)return;replay(ch.slice().reverse(),false);redoStack.push(ch);recomputeDone();updateStats();refreshButtons();markDirty()};
 $("t-redo").onclick=()=>{const ch=redoStack.pop();if(!ch)return;replay(ch,true);undoStack.push(ch);recomputeDone();updateStats();refreshButtons();markDirty();checkWin()};
-["fill","cross","move"].forEach(m=>$("t-"+m).onclick=()=>{S.mode=m;refreshAll();lsWrite()});
+["fill","cross"].forEach(m=>$("t-"+m).onclick=()=>{S.mode=m;refreshAll();lsWrite()});
 $("t-in").onclick=()=>zoomBy(1.3);$("t-out").onclick=()=>zoomBy(1/1.3);
 $("t-hint").onclick=hint;
 $("t-check").onclick=()=>{
@@ -701,7 +710,7 @@ document.addEventListener("keydown",e=>{
   else if(e.ctrlKey||e.metaKey||e.altKey)return;
   else if(k==="+"||k==="=")zoomBy(1.3);
   else if(k==="-")zoomBy(1/1.3);
-  else if(k==="f")$("t-fill").click();else if(k==="x")$("t-cross").click();else if(k==="m")$("t-move").click();
+  else if(k==="f")$("t-fill").click();else if(k==="x")$("t-cross").click();
 });
 function openHelp(on){
   $("help").hidden=!on;
@@ -782,7 +791,7 @@ function start(prev){
   if(S.layout!==3){S.views={};S.layout=3}               // the board layout changed: start each puzzle from a fresh view
   delete S.cs;delete S.csSet;delete S.pan;
   S.progress=S.progress||{};S.views=S.views||{};
-  if(!PUZZLES[S.current])S.current="big";if(!["fill","cross","move"].includes(S.mode))S.mode="fill";
+  if(!PUZZLES[S.current])S.current="big";if(!["fill","cross"].includes(S.mode))S.mode="fill";
   measure();
   pick(S.current);
   if(prog().solved)showWin();else openHelp(true);
