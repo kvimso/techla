@@ -75,6 +75,13 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
   .win-photo{animation:reveal .6s cubic-bezier(.2,1.4,.4,1) both .15s}
   @keyframes reveal{from{transform:scale(.6) rotate(-10deg);opacity:0}to{transform:rotate(-2deg);opacity:1}}
 }
+
+.edge-tab{position:absolute;z-index:2;border:0;padding:0;display:grid;place-items:center;cursor:pointer;touch-action:manipulation;
+  background:rgba(255,255,255,.94);color:var(--pink);font:900 1rem/1 var(--font-display);box-shadow:0 2px 8px rgba(80,50,120,.22)}
+.edge-tab[aria-pressed="true"]{background:var(--pink);color:#fff;font-size:.85rem}
+.edge-tab:active{transform:scale(.94)}
+#tab-top{top:0;left:44px;width:42px;height:28px;border-radius:0 0 14px 14px}
+#tab-left{left:0;top:44px;width:28px;height:42px;border-radius:0 14px 14px 0}
 </style>
 
 <div class="app">
@@ -84,7 +91,7 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
     <div class="ring" id="ring" role="img" aria-label="Progress">0%</div>
     <button class="round" id="help-btn" aria-label="Help and menu">?</button>
   </header>
-  <main class="wrap" id="wrap"><canvas id="board" role="img" aria-label="Puzzle board"></canvas></main>
+  <main class="wrap" id="wrap"><canvas id="board" role="img" aria-label="Puzzle board"></canvas><button class="edge-tab" id="tab-top" aria-pressed="false" aria-label="Keep the column numbers on screen">▾</button><button class="edge-tab" id="tab-left" aria-pressed="false" aria-label="Keep the row numbers on screen">▸</button></main>
   <nav class="tray" aria-label="Tools">
     <button class="tool" id="t-fill" aria-pressed="true"><span class="b"><span class="sq"></span></span>Fill</button>
     <button class="tool" id="t-cross" aria-pressed="false"><span class="b">✕</span>Cross</button>
@@ -120,7 +127,8 @@ label.opt input{width:20px;height:20px;accent-color:var(--pink)}
       <li>When a row or column matches its clue, its empty squares get light crosses. Change that line again and they disappear.</li>
       <li><b>Hint</b> solves one row or column for you. If something's wrong, it fixes that first.</li>
       <li><b>Check</b> shows any wrong squares in red.</li>
-      <li>Pinch with two fingers to zoom: the numbers grow with the board. Drag with two fingers, or one finger on the numbers, to move around. The numbers stay pinned to the edges while you look around. <b>Out</b> and <b>In</b> zoom too.</li>
+      <li>Pinch with two fingers to zoom: the numbers grow with the board. Drag with two fingers, or one finger on the numbers, to move around. <b>Out</b> and <b>In</b> zoom too.</li>
+      <li>The numbers scroll with the board. To keep them on screen while you move around, tap the small tabs in the top-left corner: <b>▸</b> for the row numbers, <b>▾</b> for the column numbers. Tap again (🔒) to let them scroll away.</li>
     </ul>
     <h3>Tips</h3>
     <ul>
@@ -175,7 +183,7 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),mid=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+
 const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 
-let S={current:"big",progress:{},mode:"fill",autoX:true,seenHelp:false,views:{}};
+let S={current:"big",progress:{},mode:"fill",autoX:true,seenHelp:false,views:{},pinLeft:false,pinTop:false};
 let P,N,sol,cells,rowClues,colClues,RW=1,CH=1,rowDone=[],colDone=[];
 let undoStack=[],redoStack=[],timer=null,docRef=null,saving=false,saveAgain=false;
 let hotR=-1,hotC=-1;const flashes=new Map();
@@ -210,8 +218,33 @@ let vw=300,vh=300,dpr=1,cs=20,ox=0,oy=0,minC=6,drawQueued=false,clueHits=[],corn
 const thumbCv=document.createElement("canvas");
 const docW=()=>(RW+N)*cs, docH=()=>(CH+N)*cs;
 const X=c=>-ox+(RW+c)*cs, Y=r=>-oy+(CH+r)*cs;
-const railRight=()=>Math.max(X(0),Math.min(RW*cs,vw*CAPX));
-const railBottom=()=>Math.max(Y(0),Math.min(CH*cs,vh*CAPY));
+/* The clue strips stay with the board unless their tab is switched on (like Katana's lock tabs).
+   When a tab is on, that strip follows you, pinned to the edge of the screen. */
+let pinLT=0,pinTT=0,pinAnim=null;
+const ease=t=>t*t*(3-2*t);
+const railRight=()=>{const nat=X(0),pin=Math.max(nat,Math.min(RW*cs,vw*CAPX));return nat+(pin-nat)*ease(pinLT)};
+const railBottom=()=>{const nat=Y(0),pin=Math.max(nat,Math.min(CH*cs,vh*CAPY));return nat+(pin-nat)*ease(pinTT)};
+function animatePins(){
+  if(pinAnim)return;let last=performance.now();
+  const step=t=>{const k=reduceMotion?1:Math.min(1,(t-last)/180);last=t;
+    const tl=S.pinLeft?1:0,tt=S.pinTop?1:0;
+    pinLT+=Math.sign(tl-pinLT)*Math.min(Math.abs(tl-pinLT),k);pinTT+=Math.sign(tt-pinTT)*Math.min(Math.abs(tt-pinTT),k);
+    draw();if(pinLT!==tl||pinTT!==tt)pinAnim=requestAnimationFrame(step);else pinAnim=null};
+  pinAnim=requestAnimationFrame(step);
+}
+function refreshTabs(){
+  const L=$("tab-left"),T=$("tab-top");
+  L.setAttribute("aria-pressed",S.pinLeft);T.setAttribute("aria-pressed",S.pinTop);
+  L.textContent=S.pinLeft?"🔒":"▸";T.textContent=S.pinTop?"🔒":"▾";
+  L.title=S.pinLeft?"Row numbers follow you (tap to let them scroll away)":"Keep the row numbers on screen";
+  T.title=S.pinTop?"Column numbers follow you (tap to let them scroll away)":"Keep the column numbers on screen";
+}
+let pinTipShown=false;
+function maybePinTip(){
+  if(pinTipShown||S.pinTip||S.pinLeft&&S.pinTop||!P)return;
+  if((!S.pinLeft&&X(0)<cs*1.5)||(!S.pinTop&&Y(0)<cs*1.5)){pinTipShown=true;S.pinTip=1;lsWrite();
+    toast("Tip: tap ▸ or ▾ to keep the numbers on screen")}
+}
 function fitCs(whole){const a=(vw-2*PAD)/(RW+N),b=(vh-2*PAD)/(CH+N);return whole?Math.min(a,b):a}
 function setCs(c){cs=clamp(c,minC,MAXCS)}
 function clampCam(){
@@ -226,7 +259,7 @@ function defaultView(){
 }
 function fitWhole(){setCs(fitCs(true));clampCam()}
 function saveView(){if(!P)return;S.views=S.views||{};S.views[S.current]={cs,ox,oy};lsWrite()}
-let saveViewT=null;function saveViewSoon(){clearTimeout(saveViewT);saveViewT=setTimeout(saveView,400)}
+let saveViewT=null;function saveViewSoon(){clearTimeout(saveViewT);saveViewT=setTimeout(()=>{saveView();maybePinTip()},400)}
 function measure(){
   const r=$("wrap").getBoundingClientRect();if(!r.width||!r.height)return false;
   dpr=Math.min(3,window.devicePixelRatio||1);vw=r.width;vh=r.height;
@@ -614,6 +647,8 @@ function startFling(){
   fling=requestAnimationFrame(step);
 }
 function startPan(p,withTap){pan={sx:p.x,sy:p.y,ox0:ox,oy0:oy};tap=withTap?{x:p.x,y:p.y}:null;samples=[]}
+$("tab-left").onclick=()=>{S.pinLeft=!S.pinLeft;refreshTabs();animatePins();lsWrite();toast(S.pinLeft?"Row numbers now follow you":"Row numbers stay with the board")};
+$("tab-top").onclick=()=>{S.pinTop=!S.pinTop;refreshTabs();animatePins();lsWrite();toast(S.pinTop?"Column numbers now follow you":"Column numbers stay with the board")};
 cv.addEventListener("pointerdown",e=>{
   if(!P)return;stopFling();
   try{cv.setPointerCapture(e.pointerId)}catch(_){}
@@ -790,7 +825,7 @@ function start(prev){
   if(saved&&saved.progress)S=Object.assign(S,saved);
   if(S.layout!==3){S.views={};S.layout=3}               // the board layout changed: start each puzzle from a fresh view
   delete S.cs;delete S.csSet;delete S.pan;
-  S.progress=S.progress||{};S.views=S.views||{};
+  S.progress=S.progress||{};S.views=S.views||{};S.pinLeft=!!S.pinLeft;S.pinTop=!!S.pinTop;pinLT=S.pinLeft?1:0;pinTT=S.pinTop?1:0;refreshTabs();
   if(!PUZZLES[S.current])S.current="big";if(!["fill","cross"].includes(S.mode))S.mode="fill";
   measure();
   pick(S.current);
